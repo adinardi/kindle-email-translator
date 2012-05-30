@@ -61,9 +61,7 @@ func incomingMail(w http.ResponseWriter, r *http.Request) {
 	contentType := msg.Header.Get("Content-Type")
 	items := strings.Split(contentType, ";")
 
-	if items[0] == "text/plain" {
-		body.ReadFrom(msg.Body)
-	} else {
+	if items[0] == "multipart/mixed" {
 		bsplit := strings.Split(items[1], "=")
 		boundary := bsplit[1]
 
@@ -71,6 +69,8 @@ func incomingMail(w http.ResponseWriter, r *http.Request) {
 		part, _ := reader.NextPart()
 
 		body.ReadFrom(part)
+	} else {
+		body.ReadFrom(msg.Body)
 	}
 
 	subject := msg.Header.Get("Subject")
