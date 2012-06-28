@@ -57,6 +57,7 @@ func incomingMail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var body bytes.Buffer
+	var body_bytes []byte
 
 	contentType := msg.Header.Get("Content-Type")
 	items := strings.Split(contentType, ";")
@@ -69,15 +70,19 @@ func incomingMail(w http.ResponseWriter, r *http.Request) {
 		part, _ := reader.NextPart()
 
 		body.ReadFrom(part)
+		body_bytes = body.Bytes()
 	} else {
 		body.ReadFrom(msg.Body)
+		var newline = bytes.NewBufferString("\n")
+		var dblnewline = bytes.NewBufferString("\n\n")
+		body_bytes = bytes.Replace(body.Bytes(), newline.Bytes(), dblnewline.Bytes(), -1)
 	}
 
 	subject := msg.Header.Get("Subject")
 
 	attachment := amail.Attachment{
 		Name: subject + ".txt",
-		Data: body.Bytes(),
+		Data: body_bytes,
 	}
 
 	email := &amail.Message{
